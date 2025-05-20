@@ -1,0 +1,30 @@
+server:
+  port: '8080'
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: LibraryManagementSystem
+  datasource:
+    username: postgres
+    url: jdbc:postgresql://localhost:5432/springBootDemo
+    password: root
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: 'true'
+    hibernate:
+      ddl-auto: update
+    show-sql: 'true'
+welcome:
+  message: '"Hello world !!!"'
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+        exclude: "beans"
+
+
