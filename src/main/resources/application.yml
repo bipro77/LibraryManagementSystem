@@ -8,7 +8,7 @@ spring:
     name: LibraryManagementSystem
   datasource:
     username: postgres
-    url: jdbc:postgresql://localhost:5432/springBootDemo
+    url: jdbc:postgresql://localhost:5432/lms_db
     password: root
   jpa:
     properties:
@@ -18,6 +18,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: 'true'
+
+  mvc:
+    view:
+      prefix: '/'
+      suffix: '.html'
+
 welcome:
   message: '"Hello world !!!"'
 management:
@@ -26,5 +32,6 @@ management:
       exposure:
         include: "*"
         exclude: "beans"
+
 
 
