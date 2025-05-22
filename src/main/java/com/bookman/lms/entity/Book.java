@@ -4,8 +4,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
+
+import java.time.LocalDateTime;
 import java.util.Objects; // For Objects.hash and Objects.equals
 
 /**
@@ -31,6 +35,12 @@ public class Book {
 
     @Column(length = 100) // 'genre' can be null, max length 100
     private String genre;
+    
+    @Column(nullable = false) // 'createAt cannot be null'
+    private LocalDateTime createdAt; // PrePresist has been set
+    
+    @Column(nullable = false) // 'updateAt cannot be null'
+    private LocalDateTime updatedAt; // PreUpdate has been set
 
     /**
      * Default constructor required by JPA.
@@ -47,14 +57,19 @@ public class Book {
      * @param year The publication year of the book.
      * @param genre The genre of the book.
      */
-    public Book(String title, String isbn, Integer year, String genre) {
-        this.title = title;
-        this.isbn = isbn;
-        this.year = year;
-        this.genre = genre;
-    }
+    public Book(Long id, String title, String isbn, Integer year, String genre, LocalDateTime createdAt,
+			LocalDateTime updatedAt) {
+		super();
+		this.id = id;
+		this.title = title;
+		this.isbn = isbn;
+		this.year = year;
+		this.genre = genre;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+	}
 
-    // --- Getters and Setters ---
+	// --- Getters and Setters ---
 
     public Long getId() {
         return id;
@@ -96,10 +111,26 @@ public class Book {
     public void setGenre(String genre) {
         this.genre = genre;
     }
+    
+    public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 
     // --- equals(), hashCode(), and toString() ---
 
-    /**
+	/**
      * Overrides the equals method to compare Book objects based on their ID.
      * This is crucial for JPA entity management.
      *
@@ -141,6 +172,25 @@ public class Book {
                ", isbn='" + isbn + '\'' +
                ", year=" + year +
                ", genre='" + genre + '\'' +
+               ", createdAt='" + createdAt + '\'' +
+               ", updatedAt='" + updatedAt + '\'' +
                '}';
+    }
+    
+    /*
+     * Set createdAt and updatedAt field to current time while creating new data
+     */
+    @PrePersist
+    protected void onCreate() {
+    	this.createdAt = LocalDateTime.now();
+    	this.updatedAt = LocalDateTime.now();
+    }
+    
+    /*
+     * Set updatedAt field to current time while updating the data
+     */
+    @PreUpdate
+    protected void onUpdate() {
+    	this.updatedAt = LocalDateTime.now();
     }
 }
