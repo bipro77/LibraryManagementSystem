@@ -22,7 +22,10 @@ spring:
     view:
       prefix: '/'
       suffix: '.html'
-
+  security:
+    user:
+      name: admin
+      password: admin
 welcome:
   message: '"Hello world !!!"'
 management:
