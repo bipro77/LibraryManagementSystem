@@ -1,98 +1,118 @@
 package com.bookman.lms.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Set;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "users",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = "username"),
-                @UniqueConstraint(columnNames = "email")
-        })
-public class User{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long userId;
+@AllArgsConstructor
+@Table(name = "users")
 
-    @NotBlank
-    @Size(max = 20)
-    @Column(name = "username")
-    private String userName;
+public class User {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "user_id")
+	private Long userId;
 
-    @NotBlank
-    @Size(max = 50)
-    @Email
-    @Column(name = "email")
-    private String email;
+	@NotBlank
+	@Size(max = 20)
+	@Column(name = "username", nullable = false, unique = true)
+	private String username;
 
-    @Size(max = 120)
-    @Column(name = "password")
-    @JsonIgnore
-    private String password;
+	@NotBlank
+	@Size(max = 50)
+	@Email
+	@Column(name = "email", nullable = false, unique = true)
+	private String email;
 
-    private boolean accountNonLocked = true;
-    private boolean accountNonExpired = true;
-    private boolean credentialsNonExpired = true;
-    private boolean enabled = true;
+	@Size(max = 120)
+	@Column(name = "password", nullable = false)
+	private String password;
 
-    private LocalDate credentialsExpiryDate;
-    private LocalDate accountExpiryDate;
+	private boolean accountNonLocked = true;
+	private boolean accountNonExpired = true;
+	private boolean credentialsNonExpired = true;
+	private boolean enabled = true;
 
-    private String twoFactorSecret;
-    private boolean isTwoFactorEnabled = false;
-    private String signUpMethod;
+	private LocalDate credentialsExpiryDate;
+	private LocalDate accountExpiryDate;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
-    @JoinColumn(name = "role_id", referencedColumnName = "role_id")
-    @JsonBackReference
-    @ToString.Exclude
-    private Role role;
+	private String twoFactorSecret;
+	private boolean isTwoFactorEnabled = false;
+	private String signUpMethod;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
+	@ElementCollection(fetch = FetchType.EAGER) // Roles will be eagerly loaded
+	@CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+	@Column(name = "role")
+	private Set<String> roles; // e.g., "ROLE_USER", "ROLE_ADMIN"
 
-    @UpdateTimestamp
-    private LocalDateTime updatedDate;
+	@CreationTimestamp
+	@Column(updatable = false)
+	private LocalDateTime createdAt;
 
-    public User(String userName, String email, String password) {
-        this.userName = userName;
-        this.email = email;
-        this.password = password;
-    }
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
-    public User(String userName, String email) {
-        this.userName = userName;
-        this.email = email;
-    }
+	public User(String username, String email, String password) {
+		this.username = username;
+		this.email = email;
+		this.password = password;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        return userId != null && userId.equals(((User) o).getUserId());
-    }
+	public User(String username, String email) {
+		this.username = username;
+		this.email = email;
+	}
+	
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		return Objects.equals(accountExpiryDate, other.accountExpiryDate)
+				&& accountNonExpired == other.accountNonExpired && accountNonLocked == other.accountNonLocked
+				&& Objects.equals(createdAt, other.createdAt)
+				&& Objects.equals(credentialsExpiryDate, other.credentialsExpiryDate)
+				&& credentialsNonExpired == other.credentialsNonExpired && Objects.equals(email, other.email)
+				&& enabled == other.enabled && isTwoFactorEnabled == other.isTwoFactorEnabled
+				&& Objects.equals(password, other.password) && Objects.equals(roles, other.roles)
+				&& Objects.equals(signUpMethod, other.signUpMethod)
+				&& Objects.equals(twoFactorSecret, other.twoFactorSecret) && Objects.equals(updatedAt, other.updatedAt)
+				&& Objects.equals(userId, other.userId) && Objects.equals(username, other.username);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(accountExpiryDate, accountNonExpired, accountNonLocked, createdAt, credentialsExpiryDate,
+				credentialsNonExpired, email, enabled, isTwoFactorEnabled, password, roles, signUpMethod,
+				twoFactorSecret, updatedAt, userId, username);
+	}
 }
-//Jakarta Validation 3.1 was officially released on March 28, 2024.
-// The next version, Jakarta Validation 4.0, is scheduled for release on January 31, 2026.
-// https://www.baeldung.com/java-bean-validation-not-null-empty-blank
