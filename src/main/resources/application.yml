@@ -14,7 +14,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: 'true'
     hibernate:
       ddl-auto: update
     show-sql: 'true'
@@ -26,14 +25,3 @@ spring:
     user:
       name: admin
       password: admin
-welcome:
-  message: '"Hello world !!!"'
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-        exclude: "beans"
-
-
-
