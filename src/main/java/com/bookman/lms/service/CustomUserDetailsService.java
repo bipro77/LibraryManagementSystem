@@ -7,7 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.bookman.lms.entity.Book;
 import com.bookman.lms.entity.User;
 import com.bookman.lms.repository.UserRepository;
 
@@ -42,4 +44,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .collect(Collectors.toList())
         );
     }
+    
+    @Transactional // Ensures the entire method executes as a single transaction
+	public User createUser(User user) {
+		return userRepository.save(user);
+	}
+    
+    
 }

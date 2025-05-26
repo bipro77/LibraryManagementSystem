@@ -1,14 +1,14 @@
 package com.bookman.lms.service;
 
-import com.bookman.lms.entity.Book;
-import com.bookman.lms.repository.BookRepository;
-import com.bookman.lms.exception.BookNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import com.bookman.lms.entity.Book;
+import com.bookman.lms.exception.BookNotFoundException;
+import com.bookman.lms.repository.BookRepository;
 
 /**
  * Service layer for managing Book entities. Contains business logic and
@@ -19,7 +19,7 @@ public class BookService {
 
 	private final BookRepository bookRepository;
 
-	@Autowired // Injects BookRepository instance
+	// Injects BookRepository instance
 	public BookService(BookRepository bookRepository) {
 		this.bookRepository = bookRepository;
 	}
