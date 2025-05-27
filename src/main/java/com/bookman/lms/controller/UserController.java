@@ -30,12 +30,10 @@ public class UserController {
 	@GetMapping("/{username}") // Handles GET requests to /api/users/username/{username}
 	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
 	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username, Authentication authentication) {
-
-		// Use the service to find the user. Assuming CustomUserDetailsService has a
-		// suitable method.
-		// If the user is not found, the service method should throw
-		// ResourceNotFoundException.
-		User user = userService.findUserByUsernameForBusinessLogic(username);
+		
+		User user = userService.findUserByUsername(username);
+		//loadUserByUsername is for Spring Security's internal use, and findUserByUsernameForBusinessLogic 
+		//(or the equivalent in UserService) is for your application's broader business needs.
 
 		// If for some reason the service returns null and doesn't throw, explicitly
 		// throw here
@@ -107,15 +105,10 @@ public class UserController {
 				}
 			});
 		}
-		newUser.setRoles(roles); // Set the roles (may be empty if client didn't provide any; service will
-									// default)
+		newUser.setRoles(roles); 
 
 		try {
-			// Delegate user creation (including password encoding and uniqueness checks) to
-			// the service layer.
 			User registeredUser = userService.createUser(newUser);
-
-			// Prepare the response map with public details of the newly registered user
 			Map<String, Object> responseData = new HashMap<>();
 			responseData.put("userId", registeredUser.getUserId());
 			responseData.put("username", registeredUser.getUsername());
@@ -141,41 +134,42 @@ public class UserController {
 		// Other unforeseen exceptions should ideally be handled by a global
 		// @ControllerAdvice for consistency.
 	}
+	// ............................. Delete User ..................... Not configured
+	@DeleteMapping("remove/{userId}") // Maps DELETE requests to /api/users/{userId}
+    @PreAuthorize("hasRole('ADMIN')") // Only users with 'ADMIN' role can delete users
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+       // userService.deleteUserById(userId); // Call the service to handle deletion
+        // Return 204 No Content status, indicating successful processing with no content to return
+        System.out.println(" remove Id "+  userId);
+        return ResponseEntity.noContent().build();
+    }
 
-	// --- You would add other user-related endpoints here as your application grows
-	// ---
+	
+	
+	
+// Have to find
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> getCurrentUserProfile(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userService.findUserByUsername(username);
 
-	/*
-	 * Example of a /me endpoint (get current user's profile):
-	 * 
-	 * @GetMapping("/me")
-	 * 
-	 * @PreAuthorize("isAuthenticated()") // Only authenticated users can access
-	 * this public ResponseEntity<Map<String, Object>>
-	 * getCurrentUserProfile(Authentication authentication) { String username =
-	 * authentication.getName(); // Get the username of the currently logged-in user
-	 * User user =
-	 * customUserDetailsService.findUserByUsernameForBusinessLogic(username); //
-	 * Fetch user data
-	 * 
-	 * if (user == null) { // This case should ideally not happen if Spring Security
-	 * successfully authenticated the user, // but it's a safeguard. throw new
-	 * ResourceNotFoundException("Logged-in user profile not found for username: " +
-	 * username); }
-	 * 
-	 * // Construct the response map (similar to getUserByUsername) Map<String,
-	 * Object> userData = new HashMap<>(); userData.put("userId", user.getUserId());
-	 * userData.put("username", user.getUsername()); userData.put("email",
-	 * user.getEmail()); userData.put("roles", user.getRoles());
-	 * userData.put("accountNonLocked", user.isAccountNonLocked());
-	 * userData.put("accountNonExpired", user.isAccountNonExpired());
-	 * userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
-	 * userData.put("enabled", user.isEnabled());
-	 * 
-	 * return ResponseEntity.ok(userData); // Return 200 OK with the current user's
-	 * data }
-	 */
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("userId", user.getUserId());
+        userData.put("username", user.getUsername());
+        userData.put("email", user.getEmail());
+        userData.put("roles", user.getRoles());
+        userData.put("accountNonLocked", user.isAccountNonLocked());
+        userData.put("accountNonExpired", user.isAccountNonExpired());
+        userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
+        userData.put("enabled", user.isEnabled());
+
+        return ResponseEntity.ok(userData);
+    }
 }
+
+	
+
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //package com.bookman.lms.controller;

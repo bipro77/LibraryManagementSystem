@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.bookman.lms.entity.Book;
 import com.bookman.lms.entity.User;
+import com.bookman.lms.exception.ResourceNotFoundException;
 import com.bookman.lms.repository.UserRepository;
 
 @Service // Marks this as a Spring service
@@ -51,18 +52,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
     
-    /**
-     * Creates and saves a new user in the system.
-     * This method handles checking for existing usernames/emails, encoding the password,
-     * and assigning default roles if none are provided.
-     *
-     * @param user The User entity with plain-text password and other details for registration.
-     * @return The saved User entity, typically with the generated ID.
-     * @throws IllegalArgumentException if the username or email already exists.
-     */
-    @Transactional // Ensures the entire method executes as a single database transaction
+    public User findUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElse(null); // Or throw a different exception if needed elsewhere
+    }
+
+    // ................... Create User .......................................................................    
+    @Transactional 
     public User createUser(User user) {
-        // Step 1: Validate uniqueness of username and email
+    	
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("Username '" + user.getUsername() + "' is already taken.");
         }
@@ -70,34 +68,23 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new IllegalArgumentException("Email '" + user.getEmail() + "' is already in use.");
         }
 
-        // Step 2: Encode the plain-text password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Step 3: Assign a default role if no roles are provided
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             Set<String> defaultRoles = new HashSet<>();
-            defaultRoles.add("ROLE_USER"); // Assign 'ROLE_USER' as the default role
+            defaultRoles.add("ROLE_USER"); 
             user.setRoles(defaultRoles);
         }
 
-        // Step 4: Set default account status flags (if not already set in User constructor)
         user.setAccountNonLocked(true);
         user.setAccountNonExpired(true);
         user.setCredentialsNonExpired(true);
         user.setEnabled(true);
 
-        // Step 5: Save the new user to the database
         return userRepository.save(user);
     }
 
-    // You might also want to add a method for finding a user by username for other services/controllers
-    // without throwing a UsernameNotFoundException, perhaps for simpler checks or other purposes.
-    public User findUserByUsernameForBusinessLogic(String username) {
-        return userRepository.findByUsername(username)
-                .orElse(null); // Or throw a different exception if needed elsewhere
-    }
-
-    // Helper methods for existence checks, useful for validation layers
+      
     public Boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
@@ -105,4 +92,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public Boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+    
+    // ................... Delete User ................    
+    @Transactional
+    public void deleteUserById(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
+        }
+        userRepository.deleteById(userId);
+    }
+    
+
 }
