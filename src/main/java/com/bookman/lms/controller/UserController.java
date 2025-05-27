@@ -27,16 +27,11 @@ public class UserController {
 	}
 
 
-	@GetMapping("/{username}") // Handles GET requests to /api/users/username/{username}
+	@GetMapping("/{username}") 
 	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
 	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username, Authentication authentication) {
 		
 		User user = userService.findUserByUsername(username);
-		//loadUserByUsername is for Spring Security's internal use, and findUserByUsernameForBusinessLogic 
-		//(or the equivalent in UserService) is for your application's broader business needs.
-
-		// If for some reason the service returns null and doesn't throw, explicitly
-		// throw here
 		if (user == null) {
 			throw new ResourceNotFoundException("User not found with username: " + username);
 		}
@@ -89,13 +84,11 @@ public class UserController {
 			return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 		}
 
-		// Create a new User entity from the request data
 		User newUser = new User();
 		newUser.setUsername(username);
 		newUser.setEmail(email);
-		newUser.setPassword(plainPassword); // Password is plain-text here, service will encode it
+		newUser.setPassword(plainPassword); 
 
-		// Process roles from the request body
 		Set<String> roles = new HashSet<>();
 		if (userData.containsKey("roles") && userData.get("roles") instanceof Iterable) {
 			// Iterate over the collection of roles provided in the request body
@@ -131,14 +124,13 @@ public class UserController {
 			errorResponse.put("path", "/api/users/register");
 			return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 		}
-		// Other unforeseen exceptions should ideally be handled by a global
-		// @ControllerAdvice for consistency.
 	}
+	
 	// ............................. Delete User ..................... Not configured
-	@DeleteMapping("remove/{userId}") // Maps DELETE requests to /api/users/{userId}
-    @PreAuthorize("hasRole('ADMIN')") // Only users with 'ADMIN' role can delete users
+	@DeleteMapping("remove/{userId}")
+    @PreAuthorize("hasRole('ADMIN')") 
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-       // userService.deleteUserById(userId); // Call the service to handle deletion
+		userService.deleteUserById(userId); 
         // Return 204 No Content status, indicating successful processing with no content to return
         System.out.println(" remove Id "+  userId);
         return ResponseEntity.noContent().build();
