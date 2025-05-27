@@ -1,25 +1,31 @@
 package com.bookman.lms.controller;
 
-import com.bookman.lms.entity.User; 
-import com.bookman.lms.exception.ResourceNotFoundException;
-import com.bookman.lms.service.CustomUserDetailsService;
-import com.bookman.lms.service.UserService;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bookman.lms.entity.User;
+import com.bookman.lms.exception.ResourceNotFoundException;
+import com.bookman.lms.service.CustomUserDetailsService;
+import com.bookman.lms.service.UserService;
 
 import jakarta.validation.Valid;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
-@RestController 
-@RequestMapping("/api/users") 
+@RestController
+@RequestMapping("/api/users")
 public class UserController {
 
 	private final CustomUserDetailsService userDetailsService;
@@ -30,34 +36,30 @@ public class UserController {
 		this.userService = userService;
 	}
 
-
-	@GetMapping("/{username}") 
+	@GetMapping("/{username}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username, Authentication authentication) {
-		
-		Optional<User> user = userService.getUserByUsername(username);
-		if (user == null) {
-			throw new ResourceNotFoundException("User not found with username: " + username);
-		}
+	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username,
+			Authentication authentication) {
 
 		// Construct a Map containing only the non-sensitive user data for the API
 		// response.
 		Map<String, Object> userData = new HashMap<>();
-		userData.put("userId", user.getUserId()); // Your User entity uses userId for the ID
-		userData.put("username", user.getUsername());
-		userData.put("email", user.getEmail());
-		// If your User entity has firstName/lastName, you'd add them here:
-		// userData.put("firstName", user.getFirstName());
-		// userData.put("lastName", user.getLastName());
 
-		// Add user roles (assuming getRoles() returns Set<String> directly)
-		userData.put("roles", user.getRoles());
+		userService.getUserByUsername(username).map(user -> {
+			userData.put("userId", user.getUserId()); // Your User entity uses userId for the ID
+			userData.put("username", user.getUsername());
+			userData.put("email", user.getEmail());
 
-		// Include account status flags (optional, but good for client to know)
-		userData.put("accountNonLocked", user.isAccountNonLocked());
-		userData.put("accountNonExpired", user.isAccountNonExpired());
-		userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
-		userData.put("enabled", user.isEnabled());
+			// Add user roles (assuming getRoles() returns Set<String> directly)
+			userData.put("roles", user.getRoles());
+
+			// Include account status flags (optional, but good for client to know)
+			userData.put("accountNonLocked", user.isAccountNonLocked());
+			userData.put("accountNonExpired", user.isAccountNonExpired());
+			userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
+			userData.put("enabled", user.isEnabled());
+			return userData;
+		}).orElseThrow(() -> new ResourceNotFoundException("User with ID " + username + " not found."));
 
 		// Crucial: Do NOT include sensitive fields like user.getPassword() or
 		// user.getTwoFactorSecret()
@@ -65,7 +67,6 @@ public class UserController {
 		return ResponseEntity.ok(userData); // Return 200 OK with the user data map
 	}
 
-	
 	@PostMapping("/register") // Handles POST requests to /api/users/register
 	// @PreAuthorize("permitAll()") // This annotation can be added here if your
 	// SecurityConfig doesn't already allow it.
@@ -91,7 +92,7 @@ public class UserController {
 		User newUser = new User();
 		newUser.setUsername(username);
 		newUser.setEmail(email);
-		newUser.setPassword(plainPassword); 
+		newUser.setPassword(plainPassword);
 
 		Set<String> roles = new HashSet<>();
 		if (userData.containsKey("roles") && userData.get("roles") instanceof Iterable) {
@@ -102,10 +103,10 @@ public class UserController {
 				}
 			});
 		}
-		newUser.setRoles(roles); 
+		newUser.setRoles(roles);
 
 		try {
-			User registeredUser = userDetailsService.createUser(newUser);
+			User registeredUser = userService.createUser(newUser);
 			Map<String, Object> responseData = new HashMap<>();
 			responseData.put("userId", registeredUser.getUserId());
 			responseData.put("username", registeredUser.getUsername());
@@ -129,39 +130,39 @@ public class UserController {
 			return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 		}
 	}
-	
-	// ............................. Delete User ..................... Not configured
-	@DeleteMapping("remove/{userId}")
-    @PreAuthorize("hasRole('ADMIN')") 
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-		userDetailsService.deleteUserById(userId); 
-        // Return 204 No Content status, indicating successful processing with no content to return
-        System.out.println(" remove Id "+  userId);
-        return ResponseEntity.noContent().build();
-    }
 
-	
-	
-	
+	/**
+	 * DELETE /api/users/{id} Deletes a user by its ID.
+	 * 
+	 * @param id The ID of the user to delete.
+	 * @return ResponseEntity with HTTP status 204 NO_CONTENT if successful.
+	 * @throws ResourceNotFoundException if the user with the given ID is not found.
+	 */
+	@DeleteMapping("{id}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+		userService.deleteUser(userId);
+//		return ResponseEntity.noContent().build(); // another way to return NO_CONTENT response
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+
 // Have to find
-    @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> getCurrentUserProfile(Authentication authentication) {
-        String username = authentication.getName();
-        User user = userDetailsService.findUserByUsername(username);
-
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("userId", user.getUserId());
-        userData.put("username", user.getUsername());
-        userData.put("email", user.getEmail());
-        userData.put("roles", user.getRoles());
-        userData.put("accountNonLocked", user.isAccountNonLocked());
-        userData.put("accountNonExpired", user.isAccountNonExpired());
-        userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
-        userData.put("enabled", user.isEnabled());
-
-        return ResponseEntity.ok(userData);
-    }
+//	@GetMapping("/me")
+//	@PreAuthorize("isAuthenticated()")
+//	public ResponseEntity<Map<String, Object>> getCurrentUserProfile(Authentication authentication) {
+//		String username = authentication.getName();
+//		User user = userService.getUserByUsername(username);
+//
+//		Map<String, Object> userData = new HashMap<>();
+//		userData.put("userId", user.getUserId());
+//		userData.put("username", user.getUsername());
+//		userData.put("email", user.getEmail());
+//		userData.put("roles", user.getRoles());
+//		userData.put("accountNonLocked", user.isAccountNonLocked());
+//		userData.put("accountNonExpired", user.isAccountNonExpired());
+//		userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
+//		userData.put("enabled", user.isEnabled());
+//
+//		return ResponseEntity.ok(userData);
+//	}
 }
-
-	
