@@ -17,6 +17,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -87,7 +89,6 @@ public class User {
 		this.username = username;
 		this.email = email;
 	}
-	
 
 	@Override
 	public boolean equals(Object obj) {
@@ -115,5 +116,22 @@ public class User {
 		return Objects.hash(accountExpiryDate, accountNonExpired, accountNonLocked, createdAt, credentialsExpiryDate,
 				credentialsNonExpired, email, enabled, isTwoFactorEnabled, password, roles, signUpMethod,
 				twoFactorSecret, updatedAt, userId, username);
+	}
+
+	/*
+	 * Set createdAt and updatedAt field to current time while creating new data
+	 */
+	@PrePersist
+	protected void onCreate() {
+		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	/*
+	 * Set updatedAt field to current time while updating the data
+	 */
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedAt = LocalDateTime.now();
 	}
 }

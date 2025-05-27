@@ -2,7 +2,8 @@ package com.bookman.lms.controller;
 
 import com.bookman.lms.entity.User; 
 import com.bookman.lms.exception.ResourceNotFoundException;
-import com.bookman.lms.service.CustomUserDetailsService; 
+import com.bookman.lms.service.CustomUserDetailsService;
+import com.bookman.lms.service.UserService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,25 +14,28 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map; 
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController 
 @RequestMapping("/api/users") 
 public class UserController {
 
-	private final CustomUserDetailsService userService;
+	private final CustomUserDetailsService userDetailsService;
+	private final UserService userService;
 
-	public UserController(CustomUserDetailsService userService) {
+	public UserController(CustomUserDetailsService userDetailsService, UserService userService) {
+		this.userDetailsService = userDetailsService;
 		this.userService = userService;
 	}
 
 
 	@GetMapping("/{username}") 
-	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username, Authentication authentication) {
 		
-		User user = userService.findUserByUsername(username);
+		Optional<User> user = userService.getUserByUsername(username);
 		if (user == null) {
 			throw new ResourceNotFoundException("User not found with username: " + username);
 		}
@@ -101,7 +105,7 @@ public class UserController {
 		newUser.setRoles(roles); 
 
 		try {
-			User registeredUser = userService.createUser(newUser);
+			User registeredUser = userDetailsService.createUser(newUser);
 			Map<String, Object> responseData = new HashMap<>();
 			responseData.put("userId", registeredUser.getUserId());
 			responseData.put("username", registeredUser.getUsername());
@@ -130,7 +134,7 @@ public class UserController {
 	@DeleteMapping("remove/{userId}")
     @PreAuthorize("hasRole('ADMIN')") 
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-		userService.deleteUserById(userId); 
+		userDetailsService.deleteUserById(userId); 
         // Return 204 No Content status, indicating successful processing with no content to return
         System.out.println(" remove Id "+  userId);
         return ResponseEntity.noContent().build();
@@ -144,7 +148,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Object>> getCurrentUserProfile(Authentication authentication) {
         String username = authentication.getName();
-        User user = userService.findUserByUsername(username);
+        User user = userDetailsService.findUserByUsername(username);
 
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", user.getUserId());
@@ -161,62 +165,3 @@ public class UserController {
 }
 
 	
-
-
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-//package com.bookman.lms.controller;
-//
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.PathVariable;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestMapping;
-//import org.springframework.web.bind.annotation.RestController;
-//
-//import com.bookman.lms.entity.Book;
-//import com.bookman.lms.entity.User;
-//import com.bookman.lms.exception.BookNotFoundException;
-//import com.bookman.lms.service.BookService;
-//import com.bookman.lms.service.CustomUserDetailsService;
-//
-//@RestController
-//@RequestMapping("/api/users")
-//public class UserController {
-//
-//	private CustomUserDetailsService userService;
-//
-//	public UserController(CustomUserDetailsService userService) {
-//		this.userService = userService;
-//
-//	}
-//
-//	/**
-//	 * GET /api/books Retrieves all books.
-//	 * 
-//	 * @return ResponseEntity with a list of books and HTTP status 200 OK.
-//	 */
-//	@GetMapping("/{id}")
-//	public UserDetails getUser(@PathVariable Long id) {
-//		UserDetails user = userService.loadUserByUsername("abc");
-//		System.out.println(user);
-//		return user;
-//	}
-
-//
-//	/**
-//	 * POST /api/books Creates a new book.
-//	 * 
-//	 * @param book The Book object to be created (sent in the request body).
-//	 * @return ResponseEntity with the created book and HTTP status 201 CREATED.
-//	 */
-//	@PostMapping
-//	public User createUser(@RequestBody User user) {
-//		User createdUser = userService.createUser(user);
-//		
-//		return createdUser;
-//	}
-//
-//}
