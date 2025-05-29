@@ -1,11 +1,26 @@
 package com.bookman.lms.controller;
 
 import jakarta.servlet.http.HttpSession;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/session")
 public class SessionController {
+	
+	@GetMapping("/session")
+	public ResponseEntity<Map<String, Object>> getSessionDetails(HttpSession session) {
+	    Map<String, Object> sessionData = new HashMap<>();
+	    session.getAttributeNames().asIterator().forEachRemaining(
+	        name -> sessionData.put(name, session.getAttribute(name))
+	    );
+	    sessionData.put("sessionId", session.getId());
+	    return ResponseEntity.ok(sessionData);
+	}
 	
 	// http://localhost:8080/api/session/set?username=alice
     @PostMapping("/set")

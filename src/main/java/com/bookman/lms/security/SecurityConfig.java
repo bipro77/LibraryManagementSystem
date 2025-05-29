@@ -39,7 +39,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/public", "/login", "/error", "/api/auth/**", "/api/books/**").permitAll()
+				.requestMatchers("/public", "/login", "/error", "/api/users/register", "/api/auth/**", "/api/books/**").permitAll()
 				.requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults())  // ✅ Modern way to enable Basic Auth for Postman
