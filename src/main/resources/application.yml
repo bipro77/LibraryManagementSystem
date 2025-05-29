@@ -21,7 +21,8 @@ spring:
     view:
       prefix: '/'
       suffix: '.html'
-#  security:
+  security:
+     debug: true
 #    user:
 #      name: admin
 #      password: admin

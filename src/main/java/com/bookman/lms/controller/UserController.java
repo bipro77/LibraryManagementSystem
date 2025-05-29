@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bookman.lms.entity.User;
 import com.bookman.lms.exception.ResourceNotFoundException;
-import com.bookman.lms.service.CustomUserDetailsService;
 import com.bookman.lms.service.UserService;
 
 import jakarta.validation.Valid;
@@ -33,12 +33,17 @@ public class UserController {
 	public UserController( UserService userService) {
 		this.userService = userService;
 	}
+	
+	
 
 	@GetMapping("/{username}")
 	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
-	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username,
-			Authentication authentication) {
-
+	//@PostAuthorize("#username == authentication.name")
+	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username) {			
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		System.out.println("Auth name: " + auth.getName());
+		System.out.println("Authorities: " + auth.getAuthorities());
+		System.out.println("Path variable: " + username);
 		// Construct a Map containing only the non-sensitive user data for the API
 		// response.
 		Map<String, Object> userData = new HashMap<>();

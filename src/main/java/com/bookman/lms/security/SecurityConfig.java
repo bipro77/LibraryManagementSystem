@@ -1,6 +1,7 @@
 package com.bookman.lms.security;
 
-import org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl;
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,26 +9,18 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.authentication.configurers.provisioning.JdbcUserDetailsManagerConfigurer;
-import org.springframework.security.config.annotation.authentication.configurers.provisioning.UserDetailsManagerConfigurer.UserDetailsBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.core.userdetails.UserDetailsService;
-
-import javax.sql.DataSource;
-import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+//@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
 	@Autowired
@@ -39,19 +32,17 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/public", "/login", "/error", "/api/users/register", "/api/auth/**", "/api/books/**").permitAll()
-				.requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
-				.requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated())
-				.httpBasic(Customizer.withDefaults())  // ✅ Modern way to enable Basic Auth for Postman
+				.requestMatchers("/public", "/api/auth/**", "/error", "/api/users/register", "/api/users/{username}")
+				.permitAll().requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
+				.requestMatchers("/api/user/**", "/api/books/**").hasAnyRole("USER", "ADMIN").anyRequest()
+				.authenticated()).httpBasic(Customizer.withDefaults()) // ✅ Modern way to enable Basic Auth for Postman
 
-				.formLogin(form -> form
-						.loginPage("/login").defaultSuccessUrl("/", true) // Redirect to home on successful login
+				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/", true) // Redirect to home on
+																							// successful login
 						.failureUrl("/login?error") // Redirect to login page with error on failure
 						.permitAll())
 
-				.logout(logout -> logout
-						.logoutUrl("/logout")
-						.logoutSuccessUrl("/login?logout")
+				.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout")
 						.invalidateHttpSession(true).deleteCookies("JSESSIONID")
 						// .addLogoutHandler(customLogoutHandler) // Add your custom handler
 						.permitAll())
