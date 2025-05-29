@@ -41,7 +41,7 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/public", "/login", "/error", "/api/users/register", "/api/auth/**", "/api/books/**").permitAll()
 				.requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
-				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated())
+				.requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults())  // ✅ Modern way to enable Basic Auth for Postman
 
 				.formLogin(form -> form

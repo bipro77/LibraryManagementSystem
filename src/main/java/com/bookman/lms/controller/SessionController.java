@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/session")
 public class SessionController {
 	
-	@GetMapping("/session")
+	@GetMapping("/details")  // http://localhost:8080/api/session/details
 	public ResponseEntity<Map<String, Object>> getSessionDetails(HttpSession session) {
 	    Map<String, Object> sessionData = new HashMap<>();
 	    session.getAttributeNames().asIterator().forEachRemaining(
@@ -22,15 +22,15 @@ public class SessionController {
 	    return ResponseEntity.ok(sessionData);
 	}
 	
-	// http://localhost:8080/api/session/set?username=alice
-    @PostMapping("/set")
+	
+    @PostMapping("/set")  // http://localhost:8080/api/session/set?username=alice
     public String setSession(HttpSession session, @RequestParam String username) {
         session.setAttribute("username", username);
         return "Session variable 'username' set to " + username;
     }
     
-    // http://localhost:8080/api/session/get
-    @GetMapping("/get")
+    
+    @GetMapping("/get")  // http://localhost:8080/api/session/get
     public String getSession(HttpSession session) {
         String username = (String) session.getAttribute("username");
         return "Session username: " + (username != null ? username : "not set");
