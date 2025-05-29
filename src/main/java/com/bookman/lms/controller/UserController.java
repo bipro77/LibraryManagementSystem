@@ -28,16 +28,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/users")
 public class UserController {
 
-	private final CustomUserDetailsService userDetailsService;
 	private final UserService userService;
 
-	public UserController(CustomUserDetailsService userDetailsService, UserService userService) {
-		this.userDetailsService = userDetailsService;
+	public UserController( UserService userService) {
 		this.userService = userService;
 	}
 
 	@GetMapping("/{username}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
 	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username,
 			Authentication authentication) {
 
