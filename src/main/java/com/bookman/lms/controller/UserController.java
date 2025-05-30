@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bookman.lms.entity.User;
+import com.bookman.lms.entity.AppUser;
 import com.bookman.lms.exception.ResourceNotFoundException;
 import com.bookman.lms.service.UserService;
 
@@ -30,16 +31,21 @@ public class UserController {
 
 	private final UserService userService;
 
-	public UserController( UserService userService) {
+	public UserController(UserService userService) {
 		this.userService = userService;
 	}
-	
-	
+
+	/**
+	 * 
+	 * @param username GET /api/users/{username} Retrieves a user details by its
+	 *                 username.
+	 * @return ResponseEntity with user details and HTTP status 200 OK or HTTP
+	 *         status 404 NOT_FOUND if not found.
+	 */
 
 	@GetMapping("/{username}")
 	@PreAuthorize("hasRole('ADMIN') or #username == authentication.name")
-	//@PostAuthorize("#username == authentication.name")
-	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username) {			
+	public ResponseEntity<Map<String, Object>> getUserByUsername(@PathVariable String username) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		System.out.println("Auth name: " + auth.getName());
 		System.out.println("Authorities: " + auth.getAuthorities());
@@ -70,6 +76,11 @@ public class UserController {
 		return ResponseEntity.ok(userData); // Return 200 OK with the user data map
 	}
 
+	/**
+	 * 
+	 * @param userData
+	 * @return
+	 */
 	@PostMapping("/register") // Handles POST requests to /api/users/register
 	// @PreAuthorize("permitAll()") // This annotation can be added here if your
 	// SecurityConfig doesn't already allow it.
@@ -92,7 +103,7 @@ public class UserController {
 			return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 		}
 
-		User newUser = new User();
+		AppUser newUser = new AppUser();
 		newUser.setUsername(username);
 		newUser.setEmail(email);
 		newUser.setPassword(plainPassword);
@@ -109,7 +120,7 @@ public class UserController {
 		newUser.setRoles(roles);
 
 		try {
-			User registeredUser = userService.createUser(newUser);
+			AppUser registeredUser = userService.createUser(newUser);
 			Map<String, Object> responseData = new HashMap<>();
 			responseData.put("userId", registeredUser.getUserId());
 			responseData.put("username", registeredUser.getUsername());
@@ -135,13 +146,28 @@ public class UserController {
 	}
 
 	/**
-	 * DELETE /api/users/{id} Deletes a user by its ID.
+	 * PUT /api/users/{userId} Updates an existing user.
+	 * 
+	 * @param userId  The ID of the book to update.
+	 * @param AppUser The AppUser object with updated information (sent in the
+	 *                request body).
+	 * @return ResponseEntity with the updated user and HTTP status 200 OK.
+	 * @throws ResourceNotFoundException if the book with the given ID is not found.
+	 */
+	@PutMapping("/{userId}")
+	public ResponseEntity<AppUser> updateUser(@PathVariable Long userId, @RequestBody AppUser userData) {
+		AppUser updatedUser = userService.updateUser(userId, userData);
+		return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+	}
+
+	/**
+	 * DELETE /api/users/{userId} Deletes a user by its ID.
 	 * 
 	 * @param id The ID of the user to delete.
 	 * @return ResponseEntity with HTTP status 204 NO_CONTENT if successful.
 	 * @throws ResourceNotFoundException if the user with the given ID is not found.
 	 */
-	@DeleteMapping("{id}")
+	@DeleteMapping("/{userId}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
 		userService.deleteUser(userId);

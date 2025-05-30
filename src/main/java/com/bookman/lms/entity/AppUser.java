@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "users")
 
-public class User {
+public class AppUser {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
@@ -78,14 +78,14 @@ public class User {
 	@UpdateTimestamp
 	private LocalDateTime updatedAt;
 
-	public User(String username, String email, String password, Set<String> roles) {
+	public AppUser(String username, String email, String password, Set<String> roles) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.roles = roles;
 	}
 
-	public User(String username, String email) {
+	public AppUser(String username, String email) {
 		this.username = username;
 		this.email = email;
 	}
@@ -98,7 +98,7 @@ public class User {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		User other = (User) obj;
+		AppUser other = (AppUser) obj;
 		return Objects.equals(accountExpiryDate, other.accountExpiryDate)
 				&& accountNonExpired == other.accountNonExpired && accountNonLocked == other.accountNonLocked
 				&& Objects.equals(createdAt, other.createdAt)

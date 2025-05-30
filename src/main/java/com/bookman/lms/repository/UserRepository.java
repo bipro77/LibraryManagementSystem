@@ -3,11 +3,12 @@ package com.bookman.lms.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import com.bookman.lms.entity.User;
+import com.bookman.lms.entity.AppUser;
 
-
-public interface UserRepository extends JpaRepository<User, Long>{
+@Repository
+public interface UserRepository extends JpaRepository<AppUser, Long>{
 	/**
      * Finds a User entity by their username.
      * Spring Data JPA will automatically generate the implementation for this method.
@@ -15,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
      * @param username The username to search for.
      * @return An Optional containing the User if found, or an empty Optional if not found.
      */
-    Optional<User> findByUsername(String username);
+    Optional<AppUser> findByUsername(String username);
 
     /**
      * Checks if a user with the given username already exists in the database.

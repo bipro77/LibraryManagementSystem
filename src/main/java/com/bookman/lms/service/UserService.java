@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bookman.lms.entity.User;
+import com.bookman.lms.entity.AppUser;
 import com.bookman.lms.exception.ResourceNotFoundException;
 import com.bookman.lms.repository.UserRepository;
 
@@ -29,7 +29,7 @@ public class UserService {
 	 * 
 	 * @return A list of all users.
 	 */
-	public List<User> getAllUsers() {
+	public List<AppUser> getAllUsers() {
 		return userRepository.findAll();
 	}
 
@@ -39,41 +39,41 @@ public class UserService {
 	 * @param username The Username of the user to retrieve.
 	 * @return An Optional containing the User if found, empty otherwise.
 	 */
-	public Optional<User> getUserByUsername(String username) {
+	public Optional<AppUser> getUserByUsername(String username) {
 		return userRepository.findByUsername(username);
 	}
 
 	/**
 	 * Creates a new user.
 	 * 
-	 * @param user The User object to be created.
+	 * @param appUser The User object to be created.
 	 * @return The saved User object (with generated ID).
 	 */
 	@Transactional // Ensures the entire method executes as a single transaction
 
-	public User createUser(User user) {
+	public AppUser createUser(AppUser appUser) {
 
-		if (userRepository.existsByUsername(user.getUsername())) {
-			throw new IllegalArgumentException("Username '" + user.getUsername() + "' is already taken.");
+		if (userRepository.existsByUsername(appUser.getUsername())) {
+			throw new IllegalArgumentException("Username '" + appUser.getUsername() + "' is already taken.");
 		}
-		if (userRepository.existsByEmail(user.getEmail())) {
-			throw new IllegalArgumentException("Email '" + user.getEmail() + "' is already in use.");
+		if (userRepository.existsByEmail(appUser.getEmail())) {
+			throw new IllegalArgumentException("Email '" + appUser.getEmail() + "' is already in use.");
 		}
 
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
 
-		if (user.getRoles() == null || user.getRoles().isEmpty()) {
+		if (appUser.getRoles() == null || appUser.getRoles().isEmpty()) {
 			Set<String> defaultRoles = new HashSet<>();
 			defaultRoles.add("ROLE_USER");
-			user.setRoles(defaultRoles);
+			appUser.setRoles(defaultRoles);
 		}
 
-		user.setAccountNonLocked(true);
-		user.setAccountNonExpired(true);
-		user.setCredentialsNonExpired(true);
-		user.setEnabled(true);
+		appUser.setAccountNonLocked(true);
+		appUser.setAccountNonExpired(true);
+		appUser.setCredentialsNonExpired(true);
+		appUser.setEnabled(true);
 
-		return userRepository.save(user);
+		return userRepository.save(appUser);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class UserService {
 	 * @throws UserNotFoundException if the user with the given ID is not found.
 	 */
 	@Transactional
-	public User updateUser(Long id, User updatedUser) {
+	public AppUser updateUser(Long id, AppUser updatedUser) {
 		if (userRepository.existsByUsername(updatedUser.getUsername())) {
 			throw new IllegalArgumentException("Username '" + updatedUser.getUsername() + "' is already taken.");
 		}
@@ -96,9 +96,9 @@ public class UserService {
 		return userRepository.findById(id).map(existingUser -> {
 			existingUser.setUsername(updatedUser.getUsername());
 			existingUser.setEmail(updatedUser.getEmail());
-			existingUser.setPassword(updatedUser.getPassword());
+			existingUser.setPassword(passwordEncoder.encode(existingUser.getPassword()));
 			return userRepository.save(existingUser);
-		}).orElseThrow(() -> new ResourceNotFoundException("Book with ID " + id + " not found."));
+		}).orElseThrow(() -> new ResourceNotFoundException("User with ID " + id + " not found."));
 	}
 
 	/**
