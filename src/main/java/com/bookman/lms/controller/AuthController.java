@@ -17,55 +17,54 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/session/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
- 
-    public AuthController(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
+	private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData, HttpSession session) {
-        try {
-            String username = loginData.get("username");
-            String password = loginData.get("password");
+	public AuthController(AuthenticationManager authenticationManager) {
+		this.authenticationManager = authenticationManager;
+	}
 
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
+	@PostMapping("/login")
+	public ResponseEntity<?> login(@RequestBody Map<String, String> loginData, HttpSession session) {
+		try {
+			String username = loginData.get("username");
+			String password = loginData.get("password");
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful!");
-            response.put("username", auth.getName());
-            response.put("roles", auth.getAuthorities());
-            session.setAttribute("username", username);
-            return ResponseEntity.ok(response);
+			Authentication auth = authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
-        }
-    }
-    
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        // Invalidate session
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+			Map<String, Object> response = new HashMap<>();
+			response.put("message", "Login successful!");
+			response.put("username", auth.getName());
+			response.put("roles", auth.getAuthorities());
+			session.setAttribute("username", username);
+			return ResponseEntity.ok(response);
 
-        // Clear authentication
-        SecurityContextHolder.clearContext();
+		} catch (AuthenticationException e) {
+			return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+		}
+	}
 
-        // Optionally delete cookies (like JSESSIONID)
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+	@PostMapping("/logout")
+	public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+		// Invalidate session
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			session.invalidate();
+		}
 
-        return ResponseEntity.ok("Logged out successfully");
-    }
+		// Clear authentication
+		SecurityContextHolder.clearContext();
+
+		// Optionally delete cookies (like JSESSIONID)
+		Cookie cookie = new Cookie("JSESSIONID", null);
+		cookie.setPath("/");
+		cookie.setHttpOnly(true);
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+
+		return ResponseEntity.ok("Logged out successfully");
+	}
 }

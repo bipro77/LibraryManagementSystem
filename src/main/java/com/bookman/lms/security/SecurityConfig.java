@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.bookman.lms.service.CustomUserDetailsService;
 
@@ -24,19 +24,22 @@ import com.bookman.lms.service.CustomUserDetailsService;
 public class SecurityConfig {
 	@Autowired
 	CustomUserDetailsService customUserDetailsService;
+	@Autowired
+	JwtAuthFilter authFilter;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.authorizeHttpRequests(
-				authorize -> authorize.requestMatchers("/public", "/api/auth/**", "/error", "/api/users/{username}")
-						.permitAll().requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
-						.requestMatchers("/api/books/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated());
+		http.authorizeHttpRequests(authorize -> authorize
+				.requestMatchers("/api/auth/**", "api/session/auth/**", "/error", "/api/users/{username}").permitAll()
+				.requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN").requestMatchers("/api/books/**")
+				.hasAnyRole("USER", "ADMIN").anyRequest().authenticated());
 
-		http.httpBasic(Customizer.withDefaults());
+//		http.httpBasic(Customizer.withDefaults()); // using jwt so no need for this 
 //		http.formLogin(Customizer.withDefaults()); // Using Postman so httpBasic is in use
 
 		// If we want to create STATELESS session then we have to use it
 //		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 		http.csrf(csrf -> csrf.disable());
 		return http.build();
 	}
@@ -66,7 +69,7 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 
-
+	// NOT EXECUTING
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
 	}
