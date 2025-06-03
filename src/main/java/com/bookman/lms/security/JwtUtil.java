@@ -32,9 +32,16 @@ public class JwtUtil {
 		return body.getSubject();
 	}
 
-	private Claims extractedClaims(String token) {
-		Claims body = Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
-		return body;
+//	private Claims extractedClaims(String token) {
+//		Claims body = Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
+//		return body;
+//	}
+
+	public Claims extractedClaims(String token) {
+		return Jwts.parser()
+				// .clockSkewSeconds(3600)
+				.verifyWith(key).build().parseSignedClaims(token).getPayload();
+
 	}
 
 	private boolean tokenIsExpired(String token) {
