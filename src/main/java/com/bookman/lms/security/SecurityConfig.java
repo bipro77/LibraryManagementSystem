@@ -30,7 +30,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/api/auth/**", "api/session/auth/**", "/error", "/api/users/{username}").permitAll()
+				.requestMatchers("/api/books/**", "/api/auth/**", "api/session/auth/**", "/error", "/api/users/{username}").permitAll()
 				.requestMatchers("/admin/**", "/api/users/**").hasRole("ADMIN").requestMatchers("/api/books/**")
 				.hasAnyRole("USER", "ADMIN").anyRequest().authenticated());
 
@@ -41,6 +41,7 @@ public class SecurityConfig {
 //		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 		http.csrf(csrf -> csrf.disable());
+		http.cors(cors -> cors.disable());
 		return http.build();
 	}
 

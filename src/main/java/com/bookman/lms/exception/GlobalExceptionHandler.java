@@ -26,6 +26,10 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
 	}
+	@ExceptionHandler(BookNotFoundException.class)
+	public ResponseEntity<Map<String, Object>> handleBookNotFound(BookNotFoundException ex) {
+		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
+	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {

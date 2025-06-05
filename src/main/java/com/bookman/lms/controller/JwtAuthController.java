@@ -32,16 +32,6 @@ public class JwtAuthController {
 	@Autowired
 	UserDetailsService userDetailsService;
 
-//	@PostMapping("login")
-//	public String generateToken(@RequestBody Map<String, String> loginData) {
-//		String username = loginData.get("username");
-//		String password = loginData.get("password");
-//
-//		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-//		// if the user get authenticated then generate JWT token
-//		return jwtUtil.generateToken(username);
-//	}
-
 	@PostMapping("login")
 	public ResponseEntity<?> generateToken(@RequestBody Map<String, String> loginData) {
 		String username = loginData.get("username");
@@ -58,7 +48,7 @@ public class JwtAuthController {
 
 	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpServletRequest request) {
-		String token = jwtUtil.extractJwtFromRequest(request);
+		String token = jwtUtil.getJwtTokenFromRequest(request);
 		if (token == null) {
 			return ResponseEntity.badRequest().body(Map.of("message", "No token found in request"));
 		}
