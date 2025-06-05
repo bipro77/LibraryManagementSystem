@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtUtil {
@@ -21,10 +22,8 @@ public class JwtUtil {
 	Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION_MS); // 1hour from now
 
 	public String generateToken(String username) {
-
 		return Jwts.builder().claims().subject(username).issuedAt(now).expiration(expiryDate).and().signWith(key)
 				.compact();
-
 	}
 
 	public String extractUsername(String token) {
@@ -52,6 +51,14 @@ public class JwtUtil {
 	public boolean validateToken(String username, UserDetails userDetails, String token) {
 		// TRUE if username is same as username in UserDetails and token is not expired
 		return username.equals(userDetails.getUsername()) && !tokenIsExpired(token);
+	}
+
+	public String extractJwtFromRequest(HttpServletRequest request) {
+		String bearerToken = request.getHeader("Authorization");
+		if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+			return bearerToken.substring(7);
+		}
+		return null;
 	}
 
 }
