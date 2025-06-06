@@ -8,15 +8,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
 	@Value("${app.debug:true}") // Set this in application.properties
@@ -24,10 +24,6 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
-	}
-	@ExceptionHandler(BookNotFoundException.class)
-	public ResponseEntity<Map<String, Object>> handleBookNotFound(BookNotFoundException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
 	}
 
@@ -44,35 +40,34 @@ public class GlobalExceptionHandler {
 		return buildErrorResponse(ex, message, HttpStatus.BAD_REQUEST);
 	}
 
+	// JWT Expired
+	@ExceptionHandler(ExpiredJwtException.class)
+	public ResponseEntity<Map<String, Object>> handleExpiredJwtException(ExpiredJwtException ex) {
+		return buildErrorResponse(ex, "JWT token has expired", HttpStatus.UNAUTHORIZED);
+	}
+
+	// Invalid signature
+	@ExceptionHandler(SignatureException.class)
+	public ResponseEntity<Map<String, Object>> handleSignatureException(SignatureException ex) {
+		return buildErrorResponse(ex, "JWT signature is invalid", HttpStatus.UNAUTHORIZED);
+	}
+
+	// Malformed JWT
+	@ExceptionHandler(MalformedJwtException.class)
+	public ResponseEntity<Map<String, Object>> handleMalformedJwtException(MalformedJwtException ex) {
+		return buildErrorResponse(ex, "Malformed JWT token", HttpStatus.BAD_REQUEST);
+	}
+
+	// Catch-all for other JWT issues
+	@ExceptionHandler(JwtException.class)
+	public ResponseEntity<Map<String, Object>> handleJwtException(JwtException ex) {
+		return buildErrorResponse(ex, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> handleAllOtherExceptions(Exception ex) {
 		return buildErrorResponse(ex, "Internal Server Error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-	// JWT Expired
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<Map<String, Object>> handleExpiredJwtException(ExpiredJwtException ex) {
-        return buildErrorResponse(ex, "JWT token has expired", HttpStatus.UNAUTHORIZED);
-    }
-
-    // Invalid signature
-    @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<Map<String, Object>> handleSignatureException(SignatureException ex) {
-        return buildErrorResponse(ex, "JWT signature is invalid", HttpStatus.UNAUTHORIZED);
-    }
-
-    // Malformed JWT
-    @ExceptionHandler(MalformedJwtException.class)
-    public ResponseEntity<Map<String, Object>> handleMalformedJwtException(MalformedJwtException ex) {
-        return buildErrorResponse(ex, "Malformed JWT token", HttpStatus.BAD_REQUEST);
-    }
-
-    // Catch-all for other JWT issues
-    @ExceptionHandler(JwtException.class)
-    public ResponseEntity<Map<String, Object>> handleJwtException(JwtException ex) {
-        return buildErrorResponse(ex, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
-    }
-
-    
 
 	// Utility method to structure the error response
 	private ResponseEntity<Map<String, Object>> buildErrorResponse(Exception ex, String message, HttpStatus status) {
@@ -83,19 +78,12 @@ public class GlobalExceptionHandler {
 		errorBody.put("message", message);
 
 		if (debug) {
-			errorBody.put("trace", getStackTraceAsString(ex));
-			System.err.println(getStackTraceAsString(ex));
+			errorBody.put("trace", ex.getStackTrace().toString());
+			String errorTrace = "Exception at: \n trace: " + errorBody.get("trace") + "\n error: "
+					+ errorBody.get("error") + "\n message: " + errorBody.get("message") + "\n timestamp: "
+					+ errorBody.get("timestamp") + "\n status: " + errorBody.get("status");
+			System.err.println(errorTrace);
 		}
-
 		return new ResponseEntity<>(errorBody, status);
-	}
-
-	// Converts stack trace to string
-	private String getStackTraceAsString(Exception ex) {
-		StringBuilder sb = new StringBuilder();
-		for (StackTraceElement element : ex.getStackTrace()) {
-			sb.append(element.toString()).append("\n");
-		}
-		return sb.toString();
 	}
 }

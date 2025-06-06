@@ -59,7 +59,8 @@ public class JwtAuthController {
 		if (isValid) {
 			tokenBlacklistService.blacklistToken(token);
 			// return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
-			return ResponseEntity.ok(Map.of("message", "Logged out successfully; Token: " + token));
+			return ResponseEntity.ok(Map.of("message", "Logged out successfully", "token", token));
+
 		} else {
 			return ResponseEntity.badRequest().body(Map.of("message", "Invalid or expired token"));
 		}
