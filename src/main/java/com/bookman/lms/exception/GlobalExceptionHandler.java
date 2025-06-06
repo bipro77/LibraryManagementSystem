@@ -1,6 +1,5 @@
 package com.bookman.lms.exception;
 
-import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
 	}
-	
+
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -39,7 +38,7 @@ public class GlobalExceptionHandler {
 				.map(error -> error.getField() + ": " + error.getDefaultMessage()).findFirst()
 				.orElse("Validation failed.");
 		return buildErrorResponse(ex, message, HttpStatus.BAD_REQUEST);
-	}	
+	}
 
 	// JWT Expired
 	@ExceptionHandler(ExpiredJwtException.class)
@@ -64,7 +63,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, Object>> handleJwtException(JwtException ex) {
 		return buildErrorResponse(ex, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
 	}
-	
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> handleAllOtherExceptions(Exception ex) {
 		return buildErrorResponse(ex, "Internal Server Error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,23 +78,12 @@ public class GlobalExceptionHandler {
 		errorBody.put("message", message);
 
 		if (debug) {
-			errorBody.put("trace", getStackTraceAsString(ex));
-			String errorTrace = "Exception at: \n error: " + errorBody.get("error")
-					+ "\n message: " + errorBody.get("message") + "\n timestamp: " + errorBody.get("timestamp")
-					+ "\n status: " + errorBody.get("status");
-			System.err.println( errorTrace);
-			//System.out.println(  getStackTraceAsString(ex));
+			errorBody.put("trace", ex.getStackTrace().toString());
+			String errorTrace = "Exception at: \n trace: " + errorBody.get("trace") + "\n error: "
+					+ errorBody.get("error") + "\n message: " + errorBody.get("message") + "\n timestamp: "
+					+ errorBody.get("timestamp") + "\n status: " + errorBody.get("status");
+			System.err.println(errorTrace);
 		}
 		return new ResponseEntity<>(errorBody, status);
 	}
-	
-	// Converts stack trace to string
-	private String getStackTraceAsString(Exception ex) {
-		StringBuilder sb = new StringBuilder();
-		for (StackTraceElement element : ex.getStackTrace()) {
-			sb.append(element.toString()).append("\n");
-		}
-		return sb.toString();
-	}
 }
-
