@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
 		errorBody.put("message", message);
 
 		if (debug) {
-			errorBody.put("trace", ex.getStackTrace().toString());
+			errorBody.put("trace", ex.toString());
 			String errorTrace = "Exception at: \n trace: " + errorBody.get("trace") + "\n error: "
 					+ errorBody.get("error") + "\n message: " + errorBody.get("message") + "\n timestamp: "
 					+ errorBody.get("timestamp") + "\n status: " + errorBody.get("status");
