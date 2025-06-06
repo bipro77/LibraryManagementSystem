@@ -73,7 +73,7 @@ public class UserController {
 		// Crucial: Do NOT include sensitive fields like user.getPassword() or
 		// user.getTwoFactorSecret()
 
-		return ResponseEntity.ok(userData); // Return 200 OK with the user data map
+		return ResponseEntity.ok(userData);
 	}
 
 	/**
@@ -175,23 +175,4 @@ public class UserController {
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-// Have to find
-//	@GetMapping("/me")
-//	@PreAuthorize("isAuthenticated()")
-//	public ResponseEntity<Map<String, Object>> getCurrentUserProfile(Authentication authentication) {
-//		String username = authentication.getName();
-//		User user = userService.getUserByUsername(username);
-//
-//		Map<String, Object> userData = new HashMap<>();
-//		userData.put("userId", user.getUserId());
-//		userData.put("username", user.getUsername());
-//		userData.put("email", user.getEmail());
-//		userData.put("roles", user.getRoles());
-//		userData.put("accountNonLocked", user.isAccountNonLocked());
-//		userData.put("accountNonExpired", user.isAccountNonExpired());
-//		userData.put("credentialsNonExpired", user.isCredentialsNonExpired());
-//		userData.put("enabled", user.isEnabled());
-//
-//		return ResponseEntity.ok(userData);
-//	}
 }

@@ -19,14 +19,14 @@ import io.jsonwebtoken.security.SignatureException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	@Value("${app.debug:true}") // Set this in application.properties
+	@Value("${app.debug:true}") // Set this in application.yml
 	private boolean debug;
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.NOT_FOUND);
 	}
-	
+
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
 		return buildErrorResponse(ex, ex.getMessage(), HttpStatus.BAD_REQUEST);
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 				.map(error -> error.getField() + ": " + error.getDefaultMessage()).findFirst()
 				.orElse("Validation failed.");
 		return buildErrorResponse(ex, message, HttpStatus.BAD_REQUEST);
-	}	
+	}
 
 	// JWT Expired
 	@ExceptionHandler(ExpiredJwtException.class)
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<Map<String, Object>> handleJwtException(JwtException ex) {
 		return buildErrorResponse(ex, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
 	}
-	
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> handleAllOtherExceptions(Exception ex) {
 		return buildErrorResponse(ex, "Internal Server Error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,17 +78,21 @@ public class GlobalExceptionHandler {
 		errorBody.put("message", message);
 
 		if (debug) {
-			errorBody.put("trace", getStackTraceAsString(ex));
-			String errorTrace = "Exception at: \n error: " + errorBody.get("error")
-					+ "\n message: " + errorBody.get("message") + "\n timestamp: " + errorBody.get("timestamp")
-					+ "\n status: " + errorBody.get("status");
-			System.err.println( errorTrace);
-			//System.out.println(  getStackTraceAsString(ex));
+			errorBody.put("trace", ex.toString());
+			String errorTrace = "Exception at: \n error: " + errorBody.get("error") + "\n message: "
+					+ errorBody.get("message") + "\n timestamp: " + errorBody.get("timestamp") + "\n status: "
+					+ errorBody.get("status");
+			System.err.println(errorTrace);
+//		errorBody.put("details", getStackTraceAsString(ex));
 		}
 		return new ResponseEntity<>(errorBody, status);
 	}
-	
-	// Converts stack trace to string
+
+	/**
+	 * Converts stack trace to string
+	 * @param ex pass exception
+	 * @return String with the concatenate string 
+	 */
 	private String getStackTraceAsString(Exception ex) {
 		StringBuilder sb = new StringBuilder();
 		for (StackTraceElement element : ex.getStackTrace()) {
@@ -97,4 +101,3 @@ public class GlobalExceptionHandler {
 		return sb.toString();
 	}
 }
-

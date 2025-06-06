@@ -114,11 +114,23 @@ public class UserService {
 		}
 		userRepository.deleteById(id);
 	}
-
+	
+	/**
+	 * Checks if a user with the given username already exists in the repository.
+	 * 
+	 * @param username The Username of the user to retrieve.
+	 * @return true if the username exists
+	 */
 	public Boolean existsByUsername(String username) {
 		return userRepository.existsByUsername(username);
 	}
 
+	/**
+	 * Checks if a user with the given email address already exists in the repository.
+	 * 
+	 * @param email
+	 * @return true if the email exists
+	 */
 	public Boolean existsByEmail(String email) {
 		return userRepository.existsByEmail(email);
 	}
