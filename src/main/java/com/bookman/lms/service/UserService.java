@@ -92,7 +92,7 @@ public class UserService {
 		if (userRepository.existsByEmail(updatedUser.getEmail())) {
 			throw new IllegalArgumentException("Email '" + updatedUser.getEmail() + "' is already in use.");
 		}
-		
+
 		return userRepository.findById(id).map(existingUser -> {
 			existingUser.setUsername(updatedUser.getUsername());
 			existingUser.setEmail(updatedUser.getEmail());
@@ -114,8 +114,7 @@ public class UserService {
 		}
 		userRepository.deleteById(id);
 	}
-	
-	
+
 	public Boolean existsByUsername(String username) {
 		return userRepository.existsByUsername(username);
 	}
