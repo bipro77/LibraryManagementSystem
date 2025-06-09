@@ -26,13 +26,12 @@ spring:
       suffix: '.html'
   security:
      debug: true
-     redis:
-       host: localhost
-       port: 6379
-       timeout: 60000
-#    user:
-#      name: admin
-#      password: admin
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 logging:
   level:
     org.springframework.data.redis: DEBUG

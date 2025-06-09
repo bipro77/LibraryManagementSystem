@@ -3,14 +3,15 @@ package com.bookman.lms.service;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TokenBlacklistService {
 
 	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private StringRedisTemplate redisTemplate;
+//	private RedisTemplate<String, String> redisTemplate;
 
 	private static final String TOKEN_BLACKLIST_PREFIX = "blacklisted_token:";
 
@@ -27,16 +28,6 @@ public class TokenBlacklistService {
 	}
 
 	/**
-	 * Blacklists a JWT token with a default expiration time of 1 hour.
-	 *
-	 * @param token The JWT token to blacklist.
-	 */
-	public void blacklistToken(String token) {
-		// fallback default: 1 hour TTL if expiration not provided
-		blacklistToken(token, 3600_000);
-	}
-
-	/**
 	 * Checks if a JWT token is blacklisted by looking it up in Redis.
 	 *
 	 * @param token The JWT token to check.
@@ -47,36 +38,3 @@ public class TokenBlacklistService {
 		return redisTemplate.hasKey(key);
 	}
 }
-
-//package com.bookman.lms.service;
-//
-//import java.util.HashSet;
-//import java.util.Set;
-//
-//import org.springframework.stereotype.Service;
-//
-//@Service
-//public class TokenBlacklistService {
-//
-//	// In-memory storage for blacklisted tokens
-//	private final Set<String> blacklistedTokens = new HashSet<>();
-//
-//	/**
-//	 * Add token to blacklist
-//	 * 
-//	 * @param token JWT token to blacklist
-//	 */
-//	public void blacklistToken(String token) {
-//		blacklistedTokens.add(token);
-//	}
-//
-//	/**
-//	 * Check if token is blacklisted
-//	 * 
-//	 * @param token JWT token
-//	 * @return true if token is blacklisted
-//	 */
-//	public boolean isTokenBlacklisted(String token) {
-//		return blacklistedTokens.contains(token);
-//	}
-//}
