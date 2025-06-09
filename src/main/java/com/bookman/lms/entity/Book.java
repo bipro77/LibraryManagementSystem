@@ -36,6 +36,9 @@ public class Book {
     @Column(length = 100) // 'genre' can be null, max length 100
     private String genre;
     
+    @Column(nullable = true) 
+    private String edition; 
+    
     @Column(nullable = false) // 'createAt cannot be null'
     private LocalDateTime createdAt; // PrePresist has been set
     
