@@ -48,6 +48,15 @@ public class JwtUtil {
 		return state;
 	}
 
+	/**
+	 * This method will validate the JWT token
+	 * 
+	 * @param username
+	 * @param userDetails
+	 * @param token
+	 * @return
+	 */
+
 	public boolean validateToken(String username, UserDetails userDetails, String token) {
 		// TRUE if username is same as username in UserDetails and token is not expired
 		return username.equals(userDetails.getUsername()) && !tokenIsExpired(token);
